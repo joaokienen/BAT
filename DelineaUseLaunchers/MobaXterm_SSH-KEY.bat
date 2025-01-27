@@ -1,5 +1,15 @@
 @echo off
-setlocal enabledelayedexpansion
+
+:: Define MobaXterm path as a variable
+set "MobaXtermPath=C:\Program Files (x86)\Mobatek\MobaXterm"
+set "MobaXtermExec=MobaXterm.exe"
+
+:: Check if MobaXterm is installed in the default path
+if not exist "%MobaXtermPath%\%MobaXtermExec%" (
+    echo "%MobaXtermExec%" is not installed on "%MobaXtermPath%\".
+    timeout /t 8 /nobreak >nul
+    exit /b
+)
 
 :: Check if correct number of arguments are passed
 if "%~1"=="" (
@@ -20,46 +30,26 @@ if "%~4"=="" (
 )
 
 :: Check if id_rsa already exists and delete it if so
-if exist "C:\key\id_rsa" (
-    echo Deleting existing id_rsa file...
-    del "C:\key\id_rsa"
-)
+if exist "C:\temp\id_rsa" (del "C:\temp\id_rsa")
 
 :: Create the directory for the key if it doesn't exist
-if not exist "C:\key" (
-    mkdir "C:\key"
-)
+if not exist "C:\temp" (mkdir "C:\temp")
 
 :: Write the base64 string to a temporary file
-echo %~1 > "C:\key\id_rsa_base64.txt"
+echo %~1 > "C:\temp\id_rsa_base64.txt"
 
 :: Decode the base64 string using certutil and write to id_rsa file
-certutil -decode "C:\key\id_rsa_base64.txt" "C:\key\id_rsa"
+certutil -decode "C:\temp\id_rsa_base64.txt" "C:\temp\id_rsa" >nul 2>&1
 
 :: Delete the temporary base64 file after decoding
-del "C:\key\id_rsa_base64.txt"
-
-:: Search for MobaXterm.exe
-set "MobaXtermPath="
-for /r "C:\" %%i in (MobaXterm.exe) do (
-    set "MobaXtermPath=%%i"
-    goto :foundMobaXterm
-)
-
-echo MobaXterm not found on your system. Please make sure MobaXterm is installed.
-exit /b
-
-:foundMobaXterm
-:: Now you have the full path in MobaXtermPath
-echo Found MobaXterm at %MobaXtermPath%
+del "C:\temp\id_rsa_base64.txt"
 
 :: Launch MobaXterm with SSH using the generated key
-start "" "%MobaXtermPath%" -newtab "ssh -i c:/key/id_rsa %~2@%~3 -p %~4"
+cd "%MobaXtermPath%"
+start "%MobaXtermExec%" -newtab "ssh -i c:/temp/id_rsa %~2@%~3 -p %~4"
 
 :: Wait for a few seconds to ensure MobaXterm starts the SSH session
-timeout /t 10 /nobreak >nul
+timeout /t 8 /nobreak >nul
 
 :: Ensure that the SSH session is running, then delete the id_rsa file
-del "C:\key\id_rsa"
-
-endlocal
+del "C:\temp\id_rsa"
