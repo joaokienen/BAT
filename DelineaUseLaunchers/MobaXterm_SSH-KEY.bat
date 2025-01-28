@@ -46,10 +46,10 @@ del "C:\temp\id_rsa_base64.txt"
 
 :: Launch MobaXterm with SSH using the generated key
 cd "%MobaXtermPath%"
-start "%MobaXtermExec%" -newtab "ssh -i c:/temp/id_rsa %~2@%~3 -p %~4"
+start %MobaXtermExec% -newtab "ssh -i c:/temp/id_rsa %~2@%~3 -p %~4"
 
 :: Wait for a few seconds to ensure MobaXterm starts the SSH session
-timeout /t 8 /nobreak >nul
+timeout /t 25 /nobreak >nul
 
 :: Ensure that the SSH session is running, then delete the id_rsa file
 del "C:\temp\id_rsa"
